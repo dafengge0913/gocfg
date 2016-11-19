@@ -3,6 +3,7 @@ package gocfg
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -24,11 +25,46 @@ func (c *Config) GetString(key string) string {
 }
 
 func (c *Config) GetInt(key string) (int, error) {
-	return strconv.Atoi(c.GetString(key))
+	data := c.data[key]
+	if i, ok := data.(string); ok {
+		return strconv.Atoi(i)
+	}
+	if i, ok := data.(int); ok {
+		return i, nil
+	}
+	if i, ok := data.(float64); ok {
+		return int(i), nil
+	}
+	return 0, fmt.Errorf("%v can not convert to int type, is %v", data, reflect.TypeOf(data))
 }
 
 func (c *Config) GetStringList(key string) []string {
-	return strings.Split(c.GetString(key), ",")
+	data := c.data[key]
+	if str, ok := data.(string); ok {
+		return strings.Split(str, ",")
+	}
+
+	if list, ok := data.([]interface{}); ok {
+		strList := make([]string, 0)
+		for _, obj := range list {
+			if str, ok := obj.(string); ok {
+				strList = append(strList, str)
+			}
+		}
+		return strList
+	}
+
+	return nil
+}
+
+func (c *Config) GetBool(key string) bool {
+	data := c.GetString(key)
+	switch data {
+	case "true", "True", "TRUE", "yes", "Yes", "YES", "ok", "Ok", "OK":
+		return true
+	default:
+		return false
+	}
 }
 
 func pathExists(path string) bool {
