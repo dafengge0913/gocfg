@@ -2,7 +2,7 @@ package gocfg
 
 import (
 	"fmt"
-	"gocfg"
+	"github.com/dafengge0913/gocfg"
 	"runtime"
 	"testing"
 )
